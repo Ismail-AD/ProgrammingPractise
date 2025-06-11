@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediScan - Medicine Information System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-page {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .medicine-page {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+
+        #qrcode {
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .qr-instruction {
+            color: #555;
+            font-size: 1rem;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .medicine-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .medicine-name {
+            font-size: 2.8rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .medicine-generic {
+            font-size: 1.3rem;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid #dee2e6;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .info-card h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-card p, .info-card ul {
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        .info-card ul {
+            margin-left: 0;
+            padding-left: 20px;
+        }
+
+        .dosage-highlight {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 25px 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .warning-box {
+            background: linear-gradient(45deg, #dc3545, #fd7e14);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 25px 0;
+        }
+
+        .warning-box h3 {
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .back-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-top: 30px;
+        }
+
+        .back-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .icon {
+            font-size: 1.5rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .qr-page, .medicine-page {
+                padding: 20px;
+            }
+            
+            .medicine-name {
+                font-size: 2rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- QR Code Page -->
+    <div id="qrPage" class="container">
+        <div class="qr-page">
+            <div class="logo">🏥 MediScan</div>
+            <p class="subtitle">Instant Medicine Information Access</p>
+            
+            <div id="qrcode"></div>
+            
+            <div class="qr-instruction">
+                <strong>📱 How to use:</strong><br>
+                Scan this QR code with your smartphone camera or QR scanner app to instantly access detailed medicine information.
+            </div>
+            
+            <div class="footer">
+                Secure • Fast • Reliable Medicine Information System
+            </div>
+        </div>
+    </div>
+
+    <!-- Medicine Information Page -->
+    <div id="medicinePage" class="container hidden">
+        <div class="medicine-page">
+            <div class="medicine-header">
+                <h1 class="medicine-name">Amoxicillin</h1>
+                <p class="medicine-generic">Generic: Amoxicillin Trihydrate</p>
+            </div>
+
+            <div class="dosage-highlight">
+                💊 Standard Dosage: 500mg - Take 3 times daily with food
+            </div>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3><span class="icon">🎯</span> Purpose & Uses</h3>
+                    <p>Amoxicillin is a penicillin-type antibiotic used to treat bacterial infections including:</p>
+                    <ul>
+                        <li>Respiratory tract infections</li>
+                        <li>Ear infections (otitis media)</li>
+                        <li>Urinary tract infections</li>
+                        <li>Skin and soft tissue infections</li>
+                        <li>Dental infections</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h3><span class="icon">⏰</span> Dosage Instructions</h3>
+                    <p><strong>Adults:</strong> 250-500mg every 8 hours<br>
+                    <strong>Children:</strong> 20-40mg/kg/day divided into 3 doses<br>
+                    <strong>Duration:</strong> Complete full course as prescribed (usually 7-10 days)<br>
+                    <strong>Administration:</strong> Take with or without food</p>
+                </div>
+
+                <div class="info-card">
+                    <h3><span class="icon">⚠️</span> Side Effects</h3>
+                    <p><strong>Common:</strong> Nausea, vomiting, diarrhea, stomach pain<br>
+                    <strong>Less Common:</strong> Headache, dizziness, skin rash<br>
+                    <strong>Serious:</strong> Severe allergic reactions, severe diarrhea (C. diff infection)</p>
+                </div>
+
+                <div class="info-card">
+                    <h3><span class="icon">🚫</span> Contraindications</h3>
+                    <ul>
+                        <li>Allergy to penicillin or amoxicillin</li>
+                        <li>History of severe allergic reactions to beta-lactam antibiotics</li>
+                        <li>Infectious mononucleosis</li>
+                        <li>Severe kidney disease (dose adjustment needed)</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h3><span class="icon">💊</span> Drug Information</h3>
+                    <p><strong>Active Ingredient:</strong> Amoxicillin Trihydrate<br>
+                    <strong>Strength:</strong> 500mg<br>
+                    <strong>Form:</strong> Capsules<br>
+                    <strong>Manufacturer:</strong> Generic Pharma Ltd.<br>
+                    <strong>NDC:</strong> 12345-678-90</p>
+                </div>
+
+                <div class="info-card">
+                    <h3><span class="icon">🔄</span> Drug Interactions</h3>
+                    <p>May interact with:</p>
+                    <ul>
+                        <li>Warfarin (blood thinner)</li>
+                        <li>Oral contraceptives</li>
+                        <li>Methotrexate</li>
+                        <li>Allopurinol</li>
+                    </ul>
+                    <p><em>Always inform your doctor about all medications you're taking.</em></p>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <h3>⚠️ Important Safety Information</h3>
+                <p>• Complete the full course even if you feel better<br>
+                • Do not share with others or save leftover medication<br>
+                • Contact your doctor if symptoms worsen or new symptoms appear<br>
+                • Seek immediate medical attention for signs of allergic reaction</p>
+            </div>
+
+            <div style="text-align: center;">
+                <button class="back-btn" onclick="showQRPage()">← Back to QR Code</button>
+            </div>
+
+            <div class="footer">
+                Last Updated: June 2025 • For medical emergencies, call emergency services
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Medicine data stored in memory
+        const medicineData = {
+            name: "Amoxicillin",
+            generic: "Amoxicillin Trihydrate",
+            dosage: "500mg - Take 3 times daily with food",
+            // Add more medicine data as needed
+        };
+
+        // Generate QR Code that points to medicine information
+        function generateQR() {
+            const qr = new QRious({
+                element: document.createElement('canvas'),
+                value: window.location.href + '?medicine=amoxicillin',
+                size: 250,
+                backgroundAlpha: 0,
+                foreground: '#2c3e50',
+                level: 'M'
+            });
+            
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            qrContainer.appendChild(qr.canvas);
+        }
+
+        // Check URL parameters and show appropriate page
+        function checkURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const medicine = urlParams.get('medicine');
+            
+            if (medicine) {
+                showMedicinePage();
+            } else {
+                showQRPage();
+            }
+        }
+
+        // Show QR code page
+        function showQRPage() {
+            document.getElementById('qrPage').classList.remove('hidden');
+            document.getElementById('medicinePage').classList.add('hidden');
+            
+            // Update URL without medicine parameter
+            const url = new URL(window.location);
+            url.searchParams.delete('medicine');
+            window.history.pushState({}, '', url);
+            
+            generateQR();
+        }
+
+        // Show medicine information page
+        function showMedicinePage() {
+            document.getElementById('qrPage').classList.add('hidden');
+            document.getElementById('medicinePage').classList.remove('hidden');
+        }
+
+        // Initialize the application
+        window.addEventListener('load', function() {
+            checkURL();
+        });
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function() {
+            checkURL();
+        });
+
+        // Handle QR code clicks for demo purposes (simulate scanning)
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('#qrcode')) {
+                // Simulate QR scan by adding medicine parameter
+                const url = new URL(window.location);
+                url.searchParams.set('medicine', 'amoxicillin');
+                window.history.pushState({}, '', url);
+                showMedicinePage();
+            }
+        });
+    </script>
+</body>
+</html>
