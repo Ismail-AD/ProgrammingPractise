@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediScan - Medicine Information System</title>
+    <title>QR Document Portal</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <style>
         * {
@@ -13,342 +13,309 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: #333;
+            overflow-x: hidden;
+            position: relative;
         }
 
+        /* Animated background particles */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        /* Main container */
         .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+            position: relative;
+            z-index: 10;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
 
+        /* QR Code Page */
         .qr-page {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
             padding: 40px;
+            max-width: 500px;
+            width: 100%;
             text-align: center;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            transform: translateY(0);
+            transition: all 0.3s ease;
         }
 
-        .medicine-page {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            animation: slideIn 0.6s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .qr-page:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.3);
         }
 
         .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        h1 {
+            color: white;
             font-size: 2.5rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-weight: 300;
             margin-bottom: 10px;
+            letter-spacing: -1px;
         }
 
         .subtitle {
-            color: #666;
+            color: rgba(255, 255, 255, 0.8);
             font-size: 1.1rem;
             margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        /* QR Code Container */
+        .qr-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin: 30px 0;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .qr-container:hover {
+            transform: scale(1.02);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
         }
 
         #qrcode {
-            margin: 30px 0;
             display: flex;
             justify-content: center;
-        }
-
-        .qr-instruction {
-            color: #555;
-            font-size: 1rem;
-            margin-top: 30px;
-            padding: 20px;
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-        }
-
-        .medicine-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .medicine-name {
-            font-size: 2.8rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .medicine-generic {
-            font-size: 1.3rem;
-            color: #7f8c8d;
-            font-style: italic;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        .info-card {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 25px;
-            border-radius: 15px;
-            border: 1px solid #dee2e6;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .info-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .info-card h3 {
-            color: #495057;
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-            display: flex;
             align-items: center;
-            gap: 10px;
         }
 
-        .info-card p, .info-card ul {
-            color: #6c757d;
+        .scan-instruction {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            margin-top: 20px;
             line-height: 1.6;
         }
 
-        .info-card ul {
-            margin-left: 0;
-            padding-left: 20px;
+        .scan-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            animation: bounce 2s ease-in-out infinite;
         }
 
-        .dosage-highlight {
-            background: linear-gradient(45deg, #28a745, #20c997);
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Document Page */
+        .document-page {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .document-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .document-header {
+            background: linear-gradient(135deg, #4ecdc4, #45b7d1);
             color: white;
-            padding: 20px;
-            border-radius: 15px;
+            padding: 30px;
             text-align: center;
-            margin: 25px 0;
-            font-size: 1.2rem;
-            font-weight: 600;
         }
 
-        .warning-box {
-            background: linear-gradient(45deg, #dc3545, #fd7e14);
-            color: white;
-            padding: 20px;
-            border-radius: 15px;
-            margin: 25px 0;
+        .document-content {
+            padding: 40px;
         }
 
-        .warning-box h3 {
-            margin-bottom: 10px;
-            font-size: 1.3rem;
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
         }
 
-        .back-btn {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4ecdc4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .doc-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+            padding: 0 20px 40px;
+        }
+
+        .doc-btn {
+            padding: 12px 24px;
             border: none;
-            padding: 12px 30px;
             border-radius: 25px;
-            font-size: 1rem;
             cursor: pointer;
-            transition: transform 0.3s ease;
-            margin-top: 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
-        .back-btn:hover {
-            transform: scale(1.05);
+        .doc-btn.primary {
+            background: linear-gradient(135deg, #4ecdc4, #45b7d1);
+            color: white;
         }
 
-        .icon {
-            font-size: 1.5rem;
+        .doc-btn.secondary {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
         }
 
+        .doc-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Hidden class */
         .hidden {
-            display: none;
+            display: none !important;
         }
 
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
+        /* Responsive design */
+        @media (max-width: 600px) {
+            .qr-page {
+                padding: 30px 20px;
+                margin: 10px;
+            }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .qr-page, .medicine-page {
-                padding: 20px;
-            }
-            
-            .medicine-name {
+            h1 {
                 font-size: 2rem;
             }
-            
-            .info-grid {
-                grid-template-columns: 1fr;
+
+            .qr-container {
+                padding: 20px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- QR Code Page -->
+    <!-- Animated background particles -->
+    <div class="bg-particles" id="particles"></div>
+
+    <!-- QR Code Display Page -->
     <div id="qrPage" class="container">
         <div class="qr-page">
-            <div class="logo">🏥 MediScan</div>
-            <p class="subtitle">Instant Medicine Information Access</p>
-            
-            <div id="qrcode"></div>
-            
-            <div class="qr-instruction">
-                <strong>📱 How to use:</strong><br>
-                Scan this QR code with your smartphone camera or QR scanner app to instantly access detailed medicine information.
+            <div class="logo">📄</div>
+            <h1>Document Portal</h1>
+            <p class="subtitle">Scan the QR code below to access your document</p>
+
+            <div class="qr-container">
+                <div id="qrcode"></div>
             </div>
-            
-            <div class="footer">
-                Secure • Fast • Reliable Medicine Information System
-            </div>
+
+            <div class="scan-icon">📱</div>
+            <p class="scan-instruction">
+                Open your phone's camera or QR scanner app and point it at the code above to access your document instantly.
+            </p>
         </div>
     </div>
 
-    <!-- Medicine Information Page -->
-    <div id="medicinePage" class="container hidden">
-        <div class="medicine-page">
-            <div class="medicine-header">
-                <h1 class="medicine-name">Amoxicillin</h1>
-                <p class="medicine-generic">Generic: Amoxicillin Trihydrate</p>
+    <!-- Document Page (shown after QR scan) -->
+    <div id="documentPage" class="document-page hidden">
+        <div class="document-container">
+            <div class="document-header">
+                <h2>📄 Document Access</h2>
+                <p>Your document is ready to view</p>
             </div>
-
-            <div class="dosage-highlight">
-                💊 Standard Dosage: 500mg - Take 3 times daily with food
+            <div class="document-content" id="documentContent">
+                <!-- Content will be loaded here -->
             </div>
-
-            <div class="info-grid">
-                <div class="info-card">
-                    <h3><span class="icon">🎯</span> Purpose & Uses</h3>
-                    <p>Amoxicillin is a penicillin-type antibiotic used to treat bacterial infections including:</p>
-                    <ul>
-                        <li>Respiratory tract infections</li>
-                        <li>Ear infections (otitis media)</li>
-                        <li>Urinary tract infections</li>
-                        <li>Skin and soft tissue infections</li>
-                        <li>Dental infections</li>
-                    </ul>
-                </div>
-
-                <div class="info-card">
-                    <h3><span class="icon">⏰</span> Dosage Instructions</h3>
-                    <p><strong>Adults:</strong> 250-500mg every 8 hours<br>
-                    <strong>Children:</strong> 20-40mg/kg/day divided into 3 doses<br>
-                    <strong>Duration:</strong> Complete full course as prescribed (usually 7-10 days)<br>
-                    <strong>Administration:</strong> Take with or without food</p>
-                </div>
-
-                <div class="info-card">
-                    <h3><span class="icon">⚠️</span> Side Effects</h3>
-                    <p><strong>Common:</strong> Nausea, vomiting, diarrhea, stomach pain<br>
-                    <strong>Less Common:</strong> Headache, dizziness, skin rash<br>
-                    <strong>Serious:</strong> Severe allergic reactions, severe diarrhea (C. diff infection)</p>
-                </div>
-
-                <div class="info-card">
-                    <h3><span class="icon">🚫</span> Contraindications</h3>
-                    <ul>
-                        <li>Allergy to penicillin or amoxicillin</li>
-                        <li>History of severe allergic reactions to beta-lactam antibiotics</li>
-                        <li>Infectious mononucleosis</li>
-                        <li>Severe kidney disease (dose adjustment needed)</li>
-                    </ul>
-                </div>
-
-                <div class="info-card">
-                    <h3><span class="icon">💊</span> Drug Information</h3>
-                    <p><strong>Active Ingredient:</strong> Amoxicillin Trihydrate<br>
-                    <strong>Strength:</strong> 500mg<br>
-                    <strong>Form:</strong> Capsules<br>
-                    <strong>Manufacturer:</strong> Generic Pharma Ltd.<br>
-                    <strong>NDC:</strong> 12345-678-90</p>
-                </div>
-
-                <div class="info-card">
-                    <h3><span class="icon">🔄</span> Drug Interactions</h3>
-                    <p>May interact with:</p>
-                    <ul>
-                        <li>Warfarin (blood thinner)</li>
-                        <li>Oral contraceptives</li>
-                        <li>Methotrexate</li>
-                        <li>Allopurinol</li>
-                    </ul>
-                    <p><em>Always inform your doctor about all medications you're taking.</em></p>
-                </div>
-            </div>
-
-            <div class="warning-box">
-                <h3>⚠️ Important Safety Information</h3>
-                <p>• Complete the full course even if you feel better<br>
-                • Do not share with others or save leftover medication<br>
-                • Contact your doctor if symptoms worsen or new symptoms appear<br>
-                • Seek immediate medical attention for signs of allergic reaction</p>
-            </div>
-
-            <div style="text-align: center;">
-                <button class="back-btn" onclick="showQRPage()">← Back to QR Code</button>
-            </div>
-
-            <div class="footer">
-                Last Updated: June 2025 • For medical emergencies, call emergency services
+            <div class="doc-actions">
+                <button class="doc-btn primary" onclick="viewDocument()">📖 View Document</button>
+                <button class="doc-btn secondary" onclick="downloadDocument()">💾 Download</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Medicine data stored in memory
-        const medicineData = {
-            name: "Amoxicillin",
-            generic: "Amoxicillin Trihydrate",
-            dosage: "500mg - Take 3 times daily with food",
-            // Add more medicine data as needed
-        };
+        // Create animated background particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                container.appendChild(particle);
+            }
+        }
 
-        // Generate QR Code that points to medicine information
+        // Generate QR Code
         function generateQR() {
             const qr = new QRious({
                 element: document.createElement('canvas'),
-                value: window.location.href + '?medicine=amoxicillin',
-                size: 250,
+                value: window.location.href + '?doc=access',
+                size: 280,
                 backgroundAlpha: 0,
-                foreground: '#2c3e50',
+                foreground: '#333333',
+                background: 'transparent',
                 level: 'M'
             });
             
@@ -357,13 +324,55 @@
             qrContainer.appendChild(qr.canvas);
         }
 
+        // Load document content
+        async function loadDocument() {
+            const contentDiv = document.getElementById('documentContent');
+            
+            // Your document file name (place this file in the same folder as your HTML)
+            const documentFileName = "ALENDRONATE.docx";
+            
+            // Show loading state
+            contentDiv.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    Loading document...
+                </div>
+            `;
+
+            // Simulate loading delay
+            setTimeout(() => {
+                // Show document ready message
+                contentDiv.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <h3 style="color: #4ecdc4; margin-bottom: 20px;">📄 Document Ready</h3>
+                        <p style="margin-bottom: 30px; color: #666; line-height: 1.6;">
+                            Your document is ready to view or download.
+                        </p>
+                        
+                        <!-- Document Info -->
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin: 20px 0; text-align: left;">
+                            <h4 style="color: #333; margin-bottom: 15px;">Document Information:</h4>
+                            <p style="color: #666; margin-bottom: 8px;"><strong>File:</strong> ${documentFileName}</p>
+                            <p style="color: #666; margin-bottom: 8px;"><strong>Access Time:</strong> ${new Date().toLocaleString()}</p>
+                            <p style="color: #666; margin-bottom: 8px;"><strong>Status:</strong> Ready for viewing</p>
+                            <p style="color: #666;"><strong>Size:</strong> Available for download</p>
+                        </div>
+                        
+                        <p style="color: #999; font-size: 0.9rem; margin-top: 20px;">
+                            Click "View Document" to open in a new tab or "Download" to save to your device.
+                        </p>
+                    </div>
+                `;
+            }, 1000);
+        }
+
         // Check URL parameters and show appropriate page
         function checkURL() {
             const urlParams = new URLSearchParams(window.location.search);
-            const medicine = urlParams.get('medicine');
+            const doc = urlParams.get('doc');
             
-            if (medicine) {
-                showMedicinePage();
+            if (doc === 'access') {
+                showDocumentPage();
             } else {
                 showQRPage();
             }
@@ -372,41 +381,48 @@
         // Show QR code page
         function showQRPage() {
             document.getElementById('qrPage').classList.remove('hidden');
-            document.getElementById('medicinePage').classList.add('hidden');
+            document.getElementById('documentPage').classList.add('hidden');
             
-            // Update URL without medicine parameter
+            // Update URL without document parameter
             const url = new URL(window.location);
-            url.searchParams.delete('medicine');
+            url.searchParams.delete('doc');
             window.history.pushState({}, '', url);
             
             generateQR();
         }
 
-        // Show medicine information page
-        function showMedicinePage() {
+        // Show document page
+        function showDocumentPage() {
             document.getElementById('qrPage').classList.add('hidden');
-            document.getElementById('medicinePage').classList.remove('hidden');
+            document.getElementById('documentPage').classList.remove('hidden');
+            loadDocument();
+        }
+
+        // Document functions
+        function viewDocument() {
+            const fileName = "ALENDRONATE.docx";
+            window.open(fileName, '_blank');
+        }
+
+        function downloadDocument() {
+            const fileName = "ALENDRONATE.docx";
+            const link = document.createElement('a');
+            link.href = fileName;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // Initialize the application
         window.addEventListener('load', function() {
+            createParticles();
             checkURL();
         });
 
         // Handle browser back/forward buttons
         window.addEventListener('popstate', function() {
             checkURL();
-        });
-
-        // Handle QR code clicks for demo purposes (simulate scanning)
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('#qrcode')) {
-                // Simulate QR scan by adding medicine parameter
-                const url = new URL(window.location);
-                url.searchParams.set('medicine', 'amoxicillin');
-                window.history.pushState({}, '', url);
-                showMedicinePage();
-            }
         });
     </script>
 </body>
